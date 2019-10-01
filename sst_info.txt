@@ -1,0 +1,70 @@
+The Structural Simulation Toolkit (SST) is a parallel discrete-event simulation framework, which makes it scalable and flexible. It is used by other Department of Energy (DOE) laboratories, private companies, and universities. It can be used to simulate current and future computer system designs. It allows a user to look at a given instruction set architecture (ISA) and the surrounding cache and memory hierarchies on the system, plus programming models and communication models of larger scale multi-element future systems. The software is fully modular to enable simulation of new processor microarchitectures, novel new ISA features, and unique memory hierarchies and NUMA domains. The code is parallelized via MPI to enable simulation of large scale systems or in-depth simulation of smaller scale features. 
+
+########################
+##  SST Commands
+########################
+SST contains a rich set of examples for each of the elements. For example, miranda contains 19 examples (sst-elements/src/sst/elements/miranda/tests) and gold reference files for 8 of them (sst-elements/src/sst/elements/miranda/tests/refFiles).
+
+Usage: sst [options] configFile.py
+A list of options can be shown using set --help
+
+Common options:
+-v | --verbose 
+   Print information about runtime
+-n | --num-threads
+   Specify number of threads per MPI rank
+--debug-file <location>
+   Send debugging output to location
+--partitioner <zoltan, self, simple, rrobin, linear, lib.partitioner.name>
+   Specify how the configuration graph should be partitioned for parallel execution
+--model-options "<arg list>"
+   Command line method for passing arguments to the Python configuration
+--output-partition <location>
+   Write partition information to location
+--output-dot <location> / --output-xml <location> --output-json <location>
+   Write configuration graph to location
+
+SST can be run in multi-rank and multi-thread modes.
+Examples
+   Two ranks: $ mpirun –np 2 sst demo1.py
+   Two threads: $ sst –n 2 demo1.py
+   Two ranks with two threads each: $ mpirun –np 2 sst –n 2 demo1.py
+   
+########################
+##  SST Statistics
+########################   
+Most Components and SubComponents define statistics. You can view  a list of a statistics for each component and subcomponent using sst-info.
+
+Statistics can be enabled in the Python configuration
+   enableAllStatisticsForAllComponents()
+   enableAllStatisticsForComponentType(type)
+   enableAllStatisticsForComponentName(name)
+   setStatisticLoadLevel(level)
+
+Statistics can be piped to different locations (console, json, txt, hdf5)
+   setStatisticOutput(“sst.output_type”)
+   setStatisticOutputOptions({“option” : “value”, })
+
+########################
+##  SST References
+########################
+If you are unable to find what you need below, don't hesitate to post a question in the Google group, create an issue on the SST github site, or email us!
+
+Websites
+   http://www.sst-simulator.org/
+   https://github.com/sstsimulator
+   http://www.sst-simulator.org/SST-website
+
+Configuration File Format:
+   http://sst-simulator.org/SSTPages/SSTUserPythonFileFormat/
+
+Doxygen Documentation:
+   http://sst-simulator.org/SSTDoxygen/9.0.0_docs/html/
+   
+Developer FAQ:
+   http://sst-simulator.org/SSTPages/SSTTopDocDeveloperInfo/
+   
+Building SST
+   http://sst-simulator.org/SSTPages/SSTBuildAndInstall9dot0dot0SeriesQuickStart/
+   http://sst-simulator.org/SSTPages/SSTBuildAndInstall9dot0dot0SeriesDetailedBuildInstructions/
+

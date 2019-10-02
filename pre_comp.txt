@@ -45,7 +45,7 @@ time):  sst scc-sst-example-1.py
 The test directory in ember contains multiple scripts that you can use to explore
 network topologies and traffic patterns. The simplest script to use is emberLoad.py,
 which accepts a number of parameters via the command line. To familiarize yourselves
-with ember, we suggest simulating a 2D sweep on a torus. 
+with ember, we suggest simulating a 2D halo exchange on a torus. 
 
 Although you are free to experiment with all of the available model options, we
 suggest that you try changing the the size of the torus, the number of iterations,

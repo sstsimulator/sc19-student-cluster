@@ -405,9 +405,13 @@ memBuilder  = MemBuilder(memCapacity * 1024 * 1024 * 1024, 0, 2) # 2 memories
 #   Core = CPU + L1 + L2 + L3 slice
 #
 #   Core -- Core -- Core -- Core -- Core -- Core
+#    |       |       |       |       |       | 
 #   Core -- Core -- Core -- Core -- Core -- Core
+#    |       |       |       |       |       | 
 #   Mem  -- Core -- Core -- Core -- Core -- Mem 
+#    |       |       |       |       |       | 
 #   Core -- Core -- Core -- Core -- Core -- Core
+#    |       |       |       |       |       | 
 #   Core -- Core -- Core -- Core -- Core -- Core
 #
 #######################################################

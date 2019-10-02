@@ -53,7 +53,6 @@ If you are unable to find what you need below, don't hesitate to post a question
 Websites
    http://www.sst-simulator.org/
    https://github.com/sstsimulator
-   http://www.sst-simulator.org/SST-website
 
 Configuration File Format:
    http://sst-simulator.org/SSTPages/SSTUserPythonFileFormat/

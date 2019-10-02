@@ -13,9 +13,13 @@ parameters for the memory and all of the caches.
 ##   Core = CPU + L1 + L2 + L3 slice                ##
 ##                                                  ##
 ##   Core -- Core -- Core -- Core -- Core -- Core   ##
+##    |       |       |       |       |       |     ##
 ##   Core -- Core -- Core -- Core -- Core -- Core   ##
+##    |       |       |       |       |       |     ##
 ##   Mem  -- Core -- Core -- Core -- Core -- Mem    ##
+##    |       |       |       |       |       |     ##
 ##   Core -- Core -- Core -- Core -- Core -- Core   ##
+##    |       |       |       |       |       |     ##
 ##   Core -- Core -- Core -- Core -- Core -- Core   ##
 ##                                                  ##
 ######################################################

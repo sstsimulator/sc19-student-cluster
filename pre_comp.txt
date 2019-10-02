@@ -7,6 +7,7 @@ mesh stops organized as a 6x5. The two remaining mesh stops are attached to
 memory controllers. The PEs run with the SingleStream or SpMV generators. 
 Each Mem is using the timingDRAM model. You can open the script to see the
 parameters for the memory and all of the caches.
+
 ######################################################
 ##                                                  ##
 ##   Mem = memory                                   ##
@@ -44,10 +45,11 @@ with ember, we suggest simulating a 2D sweep on a torus.
 
 Although you are free to experiment with all of the available model options, we
 suggest that you try changing the the size of the torus, the number of iterations,
-and the problem size in both the x and y dimensions to see how these affect the
+or even using different topologies to see how these affect the
 run time (reported as simulated time at the end of the run).
 
 You can launch the model using this command line (you can also experiment with
 different numbers of ranks and threads to see what happens with the simulation
-time):  sst --model-options "--topo=torus --shape=6x6x6 --cmdLine=\"Init\" --cmdLine=\"Sweep2D iterations=10 nx=25 ny=25\" --cmdLine=\"Fini\"" emberLoad.py
+time *this is note the simulated time reported at the end of the run*):
+sst --model-options "--topo=torus --shape=6x6x6 --cmdLine=\"Init\" --cmdLine=\"Halo2D iterations=1000 \" --cmdLine=\"Fini\"" emberLoad.py
 

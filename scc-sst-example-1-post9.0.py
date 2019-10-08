@@ -3,8 +3,10 @@ import sst
 import ConfigParser, argparse
 
 #####################################################################
-# This example is designed to work with SST r9.0
-# It should also work with newer versions, but may produce warnings
+# This example is designed to work with SST releases AFTER 9.0
+# Namely, the github master branch and the upcoming 9.1 release
+# It will produce errors if run with the 9.0 release due to changes
+# in how subcomponents are specified
 #####################################################################
 
 # Command line args
@@ -88,28 +90,24 @@ data_network_params = {
         "input_buf_size" : data_network_buffers,
         "route_y_first" : 1
 }
-memnic_params = {
-    "memNIC.req.linkcontrol" : "kingsley.linkcontrol",
-    "memNIC.ack.linkcontrol" : "kingsley.linkcontrol",
-    "memNIC.fwd.linkcontrol" : "kingsley.linkcontrol",
-    "memNIC.data.linkcontrol" : "kingsley.linkcontrol",
-    "memNIC.req.network_bw" : ctrl_mesh_link_bw,
-    "memNIC.ack.network_bw" : ctrl_mesh_link_bw,
-    "memNIC.fwd.network_bw" : ctrl_mesh_link_bw,
-    "memNIC.data.network_bw" : data_mesh_link_bw,
-    "memNIC.req.network_input_buffer_size" : ctrl_network_buffers,
-    "memNIC.req.network_output_buffer_size" : ctrl_network_buffers,
-    "memNIC.ack.network_input_buffer_size" : ctrl_network_buffers,
-    "memNIC.ack.network_output_buffer_size" : ctrl_network_buffers,
-    "memNIC.fwd.network_input_buffer_size" : ctrl_network_buffers,
-    "memNIC.fwd.network_output_buffer_size" : ctrl_network_buffers,
-    "memNIC.data.network_input_buffer_size" : data_network_buffers,
-    "memNIC.data.network_output_buffer_size" : data_network_buffers,
-    "memNIC.debug" : debugNIC,
-    "memNIC.debug_level" : debugLev,
-    "menNIC.accept_region" : 0,
+
+nic_params = {
+    "accept_region" : 0,
+    "debug" : debugNIC,
+    "debug_level" : debugLev,
 }
 
+ctrl_nic_params = {
+    "link_bw" : ctrl_mesh_link_bw,
+    "in_buf_size" : ctrl_network_buffers,
+    "out_buf_size" : ctrl_network_buffers,
+}
+
+data_nic_params = {
+    "link_bw" : data_mesh_link_bw,
+    "in_buf_size" : data_network_buffers,
+    "out_buf_size" : data_network_buffers,
+}
 
 # L1 cache parameters
 l1_cache_params = {
@@ -134,8 +132,8 @@ l1_cache_params = {
 
 # L2 prefetcher parameters
 l2_prefetch_params = {
-    "prefetcher.reach" : 16,
-    "prefetcher.detect_range" : 1
+    "reach" : 16,
+    "detect_range" : 1
 }
 
 # L2 cache parameters
@@ -180,7 +178,7 @@ l3_cache_params = {
 
 # MemoryController parameters
 memctrl_params = {
-    "backend.clock"     : "1.2GHz",
+    "clock"     : "1.2GHz",
     "verbose"   : memHVerbose,
     "max_requests_per_cycle" : 3,
     "backing" : "none",
@@ -191,25 +189,24 @@ memctrl_params = {
 
 # MemoryConroller backend paramters
 membackend_params = {
-    "backend" : "memHierarchy.timingDRAM",
-    "backend.id" : 0,
-    "backend.addrMapper" : "memHierarchy.roundRobinAddrMapper",
-    "backend.channels" : 2,
-    "backend.channel.transaction_Q_size" : 32,
-    "backend.channel.numRanks" : 2,
-    "backend.channel.rank.numBanks" : 16,
-    "backend.channel.rank.bank.CL" : 15,
-    "backend.channel.rank.bank.CL_WR" : 12,
-    "backend.channel.rank.bank.RCD" : 15,
-    "backend.channel.rank.bank.TRP" : 15,
-    "backend.channel.rank.bank.dataCycles" : 4,
-    "backend.channel.rank.bank.pagePolicy" : "memHierarchy.simplePagePolicy",
-    "backend.channel.rank.bank.transactionQ" : "memHierarchy.reorderTransactionQ",
-    "backend.channel.rank.bank.pagePolicy.close" : 0,
-    "backend.printconfig" : 0,
-    "backend.channel.printconfig" : 0,
-    "backend.channel.rank.printconfig" : 0,
-    "backend.channel.rank.bank.printconfig" : 0,
+    "id" : 0,
+    "addrMapper" : "memHierarchy.roundRobinAddrMapper",
+    "channels" : 2,
+    "channel.transaction_Q_size" : 32,
+    "channel.numRanks" : 2,
+    "channel.rank.numBanks" : 16,
+    "channel.rank.bank.CL" : 15,
+    "channel.rank.bank.CL_WR" : 12,
+    "channel.rank.bank.RCD" : 15,
+    "channel.rank.bank.TRP" : 15,
+    "channel.rank.bank.dataCycles" : 4,
+    "channel.rank.bank.pagePolicy" : "memHierarchy.simplePagePolicy",
+    "channel.rank.bank.transactionQ" : "memHierarchy.reorderTransactionQ",
+    "channel.rank.bank.pagePolicy.close" : 0,
+    "printconfig" : 0,
+    "channel.printconfig" : 0,
+    "channel.rank.printconfig" : 0,
+    "channel.rank.bank.printconfig" : 0,
 }
 
 # CPU parameters
@@ -287,17 +284,28 @@ class MemBuilder:
 
         mem = sst.Component("mem_" + str(self.next_mem_id), "memHierarchy.MemController")
         mem.addParams(memctrl_params)
-        mem.addParams({ "backend.mem_size" : str(self.mem_capacity / self.mem_count) + "B" })
-        mem.addParams(membackend_params)
+        
+        membk = mem.setSubComponent("backend", "memHierarchy.timingDRAM")
+        membk.addParams(membackend_params)
+        membk.addParams({ "mem_size" : str(self.mem_capacity / self.mem_count) + "B" })
 
         memLink = sst.Link("mem_link_" + str(self.next_mem_id))
 
         # Define memory NIC
-        mem.addParams(memnic_params)
-        mem.addParams({"memNIC.group" : 3})
+        mlink = mem.setSubComponent("cpulink", "memHierarchy.MemNICFour")
+        data = mlink.setSubComponent("data", "kingsley.linkcontrol")
+        req = mlink.setSubComponent("req", "kingsley.linkcontrol")
+        fwd = mlink.setSubComponent("fwd", "kingsley.linkcontrol")
+        ack = mlink.setSubComponent("ack", "kingsley.linkcontrol")
+        mlink.addParams(nic_params)
+        mlink.addParams({"group" : 3})
+        data.addParams(data_nic_params)
+        req.addParams(ctrl_nic_params)
+        fwd.addParams(ctrl_nic_params)
+        ack.addParams(ctrl_nic_params)
 
         self.next_mem_id = self.next_mem_id + 1
-        return (mem, "network", mesh_link_latency), (mem, "network_ack", mesh_link_latency), (mem, "network_fwd", mesh_link_latency), (mem, "network_data", mesh_link_latency)
+        return (req,"rtr_port", mesh_link_latency), (ack, "rtr_port", mesh_link_latency), (fwd, "rtr_port", mesh_link_latency), (data, "rtr_port", mesh_link_latency)
 
 # Build the L3 slices, one per chip
 class L3Builder:
@@ -309,14 +317,23 @@ class L3Builder:
         ## L3 ##
         l3Cache = sst.Component("l3cache_" + str(self.next_l3_id), "memHierarchy.Cache")
         l3Cache.addParams(l3_cache_params)
-        l3Cache.addParams({ 
-            "slice_id" : self.next_l3_id,
-            "memNIC.group" : 2 })
-        l3Cache.addParams(memnic_params)
+        l3Cache.addParams({ "slice_id" : self.next_l3_id })
+
+        l3nic = l3Cache.setSubComponent("cpulink", "memHierarchy.MemNICFour")
+        l3nic.addParams(nic_params)
+        l3nic.addParams({"group" : 2})
+        l3data = l3nic.setSubComponent("data", "kingsley.linkcontrol")
+        l3req = l3nic.setSubComponent("req", "kingsley.linkcontrol")
+        l3fwd = l3nic.setSubComponent("fwd", "kingsley.linkcontrol")
+        l3ack = l3nic.setSubComponent("ack", "kingsley.linkcontrol")
+        l3data.addParams(data_nic_params)
+        l3req.addParams(ctrl_nic_params)
+        l3fwd.addParams(ctrl_nic_params)
+        l3ack.addParams(ctrl_nic_params)
 
         self.next_l3_id = self.next_l3_id + 1
 
-        return (l3Cache, "directory", mesh_link_latency), (l3Cache, "directory_ack", mesh_link_latency), (l3Cache, "directory_fwd", mesh_link_latency), (l3Cache, "directory_data", mesh_link_latency)
+        return (l3req, "rtr_port", mesh_link_latency), (l3ack, "rtr_port", mesh_link_latency), (l3fwd, "rtr_port", mesh_link_latency), (l3data, "rtr_port", mesh_link_latency)
 
 
 # Build the cores, 28 cores
@@ -352,15 +369,25 @@ class CoreBuilder:
         l2Cache = sst.Component("l2cache_" + str(self.next_core_id), "memHierarchy.Cache")
         l2Cache.addParams(l2_cache_params)
         ## -> Prefetcher
-        l2Cache.addParams({ "prefetcher" : "cassini.StridePrefetcher" })
-        l2Cache.addParams(l2_prefetch_params)
+        pref = l2Cache.setSubComponent("prefetcher", "cassini.StridePrefetcher")
+        pref.addParams(l2_prefetch_params)
         ## -> Links
-        l2Cache.addParams(memnic_params)
-        l2Cache.addParams({ "memNIC.group" : 1 })
+        l2cpu = l2Cache.setSubComponent("cpulink", "memHierarchy.MemLink")
+        l2mem = l2Cache.setSubComponent("memlink", "memHierarchy.MemNICFour")
+        l2mem.addParams(nic_params)
+        l2mem.addParams({"group" : 1})
+        l2data = l2mem.setSubComponent("data", "kingsley.linkcontrol")
+        l2req = l2mem.setSubComponent("req", "kingsley.linkcontrol")
+        l2fwd = l2mem.setSubComponent("fwd", "kingsley.linkcontrol")
+        l2ack = l2mem.setSubComponent("ack", "kingsley.linkcontrol")
+        l2data.addParams(data_nic_params)
+        l2req.addParams(ctrl_nic_params)
+        l2fwd.addParams(ctrl_nic_params)
+        l2ack.addParams(ctrl_nic_params)
 
         # Connect L1 & L2
         l1Tol2 = sst.Link("l1tol2_" + str(self.next_core_id))
-        l1Tol2.connect( (l1Cache, "low_network_0", "100ps"), (l2Cache, "high_network_0", "100ps") )
+        l1Tol2.connect( (l1Cache, "low_network_0", "100ps"), (l2cpu, "port", "100ps") )
         l1Tol2.setNoCut()
 
         # Connect Core & l1
@@ -370,7 +397,7 @@ class CoreBuilder:
 
         self.next_core_id = self.next_core_id + 1
 
-        return (l2Cache, "cache", mesh_link_latency), (l2Cache, "cache_ack", mesh_link_latency), (l2Cache, "cache_fwd", mesh_link_latency), (l2Cache, "cache_data", mesh_link_latency)
+        return (l2req, "rtr_port", mesh_link_latency), (l2ack, "rtr_port", mesh_link_latency), (l2fwd, "rtr_port", mesh_link_latency), (l2data, "rtr_port", mesh_link_latency)
 
 # Builder instances
 coreBuilder = CoreBuilder()

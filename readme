@@ -7,7 +7,10 @@ Information for SC19 Student Cluster Competition
    Examples of launch commands for miranda and ember
    
 -scc-sst-example-1
-   Sample miranda script
+   Sample miranda script (only valide for SST 9.0)
+
+-scc-sst-example-1-post9.0.py
+   Sample miranda script (only valid for SST 9.1 and current master branch)
    
 -example1_result.csv
    Sample output from scc-sst-example-1
